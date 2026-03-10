@@ -2,7 +2,7 @@
 
 Practical guidance for designing, implementing, and troubleshooting Go-Kratos services.
 
-中文 [README_CN.md](./README_CN.md).
+[中文](./README_CN.md).
 
 This repository is a single-skill package for `npx skills`. The skill entry point is the root [`SKILL.md`](./SKILL.md). This `README.md` is only for repository readers and does not participate in skill discovery.
 
