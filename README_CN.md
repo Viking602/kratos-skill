@@ -8,6 +8,14 @@ English version: [README.md](./README.md).
 
 ## 安装
 
+从 GitHub 直接安装：
+
+```bash
+npx skills add viking602/kratos-skill
+```
+
+这条命令会进入交互式安装流程。
+
 从 GitHub 仓库安装：
 
 ```bash
@@ -26,10 +34,10 @@ npx skills add /path/to/kratos-skill
 npx skills add <owner>/<repo> --list
 ```
 
-仅为 Codex 安装这个技能：
+仅为 Codex 无提示安装这个技能：
 
 ```bash
-npx skills add <owner>/<repo> -a codex -s kratos-skill -y
+npx skills add viking602/kratos-skill -a codex -s kratos-skill -y
 ```
 
 ## 管理

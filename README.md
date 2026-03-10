@@ -2,11 +2,19 @@
 
 Practical guidance for designing, implementing, and troubleshooting Go-Kratos services.
 
-中文说明见 [README_CN.md](./README_CN.md).
+中文 [README_CN.md](./README_CN.md).
 
 This repository is a single-skill package for `npx skills`. The skill entry point is the root [`SKILL.md`](./SKILL.md). This `README.md` is only for repository readers and does not participate in skill discovery.
 
 ## Install
+
+Quick install from GitHub:
+
+```bash
+npx skills add viking602/kratos-skill
+```
+
+This starts the interactive installer for the skill package.
 
 Install from a GitHub repository:
 
@@ -26,10 +34,10 @@ List the skill without installing:
 npx skills add <owner>/<repo> --list
 ```
 
-Install only this skill for Codex:
+Install only this skill for Codex without prompts:
 
 ```bash
-npx skills add <owner>/<repo> -a codex -s kratos-skill -y
+npx skills add viking602/kratos-skill -a codex -s kratos-skill -y
 ```
 
 ## Manage
