@@ -1,4 +1,4 @@
-// 错误定义示例
+// Error definition example
 syntax = "proto3";
 package user.v1;
 
@@ -6,47 +6,47 @@ import "errors/errors.proto";
 
 option go_package = "github.com/example/user/api/user/v1;v1";
 
-// 错误原因枚举
+// Error reason enum
 enum ErrorReason {
-    // 设置默认错误码（当未指定 code 时使用）
+    // Set the default error code when a value does not define one explicitly.
     option (errors.default_code) = 500;
     
-    // ========== 400 - 客户端错误 ==========
+    // ========== 400 - Client errors ==========
     
-    // 用户名格式错误
+    // Invalid username or credential input
     USER_NAME_EMPTY = 0 [(errors.code) = 400];
     USER_NAME_TOO_LONG = 1 [(errors.code) = 400];
     INVALID_EMAIL_FORMAT = 2 [(errors.code) = 400];
     PASSWORD_TOO_SHORT = 3 [(errors.code) = 400];
     PASSWORD_TOO_WEAK = 4 [(errors.code) = 400];
     
-    // ========== 401 - 未认证 ==========
+    // ========== 401 - Unauthenticated ==========
     
     UNAUTHORIZED = 10 [(errors.code) = 401];
     TOKEN_EXPIRED = 11 [(errors.code) = 401];
     TOKEN_INVALID = 12 [(errors.code) = 401];
     
-    // ========== 403 - 禁止访问 ==========
+    // ========== 403 - Forbidden ==========
     
     FORBIDDEN = 20 [(errors.code) = 403];
     PERMISSION_DENIED = 21 [(errors.code) = 403];
     
-    // ========== 404 - 资源不存在 ==========
+    // ========== 404 - Resource not found ==========
     
     USER_NOT_FOUND = 30 [(errors.code) = 404];
     EMAIL_NOT_FOUND = 31 [(errors.code) = 404];
     
-    // ========== 409 - 资源冲突 ==========
+    // ========== 409 - Resource conflicts ==========
     
     USER_ALREADY_EXISTS = 40 [(errors.code) = 409];
     EMAIL_ALREADY_REGISTERED = 41 [(errors.code) = 409];
     USER_NAME_ALREADY_TAKEN = 42 [(errors.code) = 409];
     
-    // ========== 429 - 请求过多 ==========
+    // ========== 429 - Too many requests ==========
     
     RATE_LIMITED = 50 [(errors.code) = 429];
     
-    // ========== 500 - 服务端错误 ==========
+    // ========== 500 - Server errors ==========
     
     INTERNAL_ERROR = 60 [(errors.code) = 500];
     DATABASE_ERROR = 61 [(errors.code) = 500];

@@ -1,4 +1,4 @@
-// API 定义示例 - 用户服务
+// API definition example - User service
 syntax = "proto3";
 package user.v1;
 
@@ -8,16 +8,16 @@ import "errors/errors.proto";
 
 option go_package = "github.com/example/user/api/user/v1;v1";
 
-// 用户服务定义
+// User service definition
 service UserService {
-    // 获取用户信息
+    // Get a user by ID
     rpc GetUser(GetUserRequest) returns (GetUserReply) {
         option (google.api.http) = {
             get: "/v1/users/{id}"
         };
     }
     
-    // 创建用户
+    // Create a user
     rpc CreateUser(CreateUserRequest) returns (CreateUserReply) {
         option (google.api.http) = {
             post: "/v1/users"
@@ -25,7 +25,7 @@ service UserService {
         };
     }
     
-    // 更新用户
+    // Update a user
     rpc UpdateUser(UpdateUserRequest) returns (UpdateUserReply) {
         option (google.api.http) = {
             put: "/v1/users/{id}"
@@ -33,14 +33,14 @@ service UserService {
         };
     }
     
-    // 删除用户
+    // Delete a user
     rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {
         option (google.api.http) = {
             delete: "/v1/users/{id}"
         };
     }
     
-    // 列取用户
+    // List users
     rpc ListUsers(ListUsersRequest) returns (ListUsersReply) {
         option (google.api.http) = {
             get: "/v1/users"
@@ -48,7 +48,7 @@ service UserService {
     }
 }
 
-// ========== 消息定义 ==========
+// ========== Message definitions ==========
 
 message User {
     int64 id = 1;
@@ -66,7 +66,7 @@ enum UserStatus {
     USER_STATUS_DELETED = 3;
 }
 
-// 获取用户
+// Get a user
 message GetUserRequest {
     int64 id = 1 [(validate.rules).int64 = {gt: 0}];
 }
@@ -75,7 +75,7 @@ message GetUserReply {
     User user = 1;
 }
 
-// 创建用户
+// Create a user
 message CreateUserRequest {
     string name = 1 [(validate.rules).string = {min_len: 1, max_len: 100}];
     string email = 2 [(validate.rules).string.email = true];
@@ -86,7 +86,7 @@ message CreateUserReply {
     User user = 1;
 }
 
-// 更新用户
+// Update a user
 message UpdateUserRequest {
     int64 id = 1 [(validate.rules).int64 = {gt: 0}];
     google.protobuf.FieldMask update_mask = 2;
@@ -102,12 +102,12 @@ message UpdateUserReply {
     User user = 1;
 }
 
-// 删除用户
+// Delete a user
 message DeleteUserRequest {
     int64 id = 1 [(validate.rules).int64 = {gt: 0}];
 }
 
-// 列取用户
+// List users
 message ListUsersRequest {
     int32 page = 1 [(validate.rules).int32 = {gte: 1}];
     int32 page_size = 2 [(validate.rules).int32 = {gte: 1, lte: 100}];
