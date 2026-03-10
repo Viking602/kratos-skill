@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kratos Skill"
+  short_description: "Guide for Go-Kratos services"
+  default_prompt: "Use $kratos-skill to implement or review a Go-Kratos service change."

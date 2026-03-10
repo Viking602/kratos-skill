@@ -1,0 +1,96 @@
+{
+  "skill_name": "kratos-skill",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "My Kratos project needs an order creation API. When creating an order, it must call the user service via gRPC to verify the user exists, call the inventory service via gRPC to check stock, then create the order in MySQL (the project uses GORM). Implement internal/data/order.go, internal/biz/order.go, and internal/service/order.go — all three layers. Error handling must be proper: user not found, insufficient stock, and database write failure should each have appropriate error codes. errors.proto already defines ORDER_USER_NOT_FOUND(404), ORDER_INSUFFICIENT_STOCK(400), ORDER_CREATE_FAILED(500).",
+      "expected_output": "Three-layer implementation where data layer catches ORM/gRPC errors and translates them to biz-level semantic errors, biz keeps ORM out of the domain layer, and service returns stable local API errors. Service-layer mapping to proto-generated API helpers is preferred, but a consistent existing Kratos-error pattern is also acceptable.",
+      "files": [],
+      "expectations": [
+        "data layer code does not import api/v1 or call v1.ErrorXxx",
+        "data layer does not do blanket catches that map all errors to a single domain error (e.g. if err != nil { return nil, biz.ErrXxx }). Query operations catch specific ORM errors (ent.IsNotFound, gorm.ErrRecordNotFound). Unknown/unexpected errors are wrapped with fmt.Errorf and %w rather than swallowed or uniformly converted.",
+        "biz layer defines domain errors using kratos/v2/errors with proto ErrorReason (e.g., errors.NotFound(v1.ErrorReason_XXX.String(), \"msg\")) per kratos-layout, and does NOT import ORM packages",
+        "biz layer translates data errors — checks for known domain errors and wraps unknown errors into domain Kratos errors instead of blindly passing through repo errors",
+        "service layer handles errors correctly — either passes through biz Kratos errors directly or remaps to v1.ErrorXxx() for richer messages",
+        "service layer has defense-in-depth fallback — either explicit guard against non-Kratos errors leaking, or at minimum all error paths return Kratos errors rather than raw errors",
+        "cross-service gRPC calls use errors.FromError or IsXxx to unwrap remote service errors",
+        "handles gRPC framework-level errors (DeadlineExceeded/Unavailable) or at least mentions the need to handle them"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I'm building a Kratos user service. I need to handle these error cases: user not found (HTTP 404), duplicate username (HTTP 409), and invalid email format (HTTP 400). Currently I'm defining errors like this in my biz layer:\n\n```go\n// internal/biz/user.go\npackage biz\n\nimport kratosErrors \"github.com/go-kratos/kratos/v2/errors\"\n\nvar (\n    ErrUserNotFound = kratosErrors.NotFound(\"USER_NOT_FOUND\", \"user not found\")\n    ErrDuplicateUser = kratosErrors.Conflict(\"DUPLICATE_USER\", \"username already exists\")\n    ErrInvalidEmail = kratosErrors.BadRequest(\"INVALID_EMAIL\", \"email format is invalid\")\n)\n```\n\nAnd returning them directly from my service layer:\n\n```go\n// internal/service/user.go\nfunc (s *UserService) CreateUser(ctx context.Context, req *v1.CreateUserRequest) (*v1.CreateUserReply, error) {\n    user, err := s.uc.CreateUser(ctx, req)\n    if err != nil {\n        return nil, err  // returning biz errors directly\n    }\n    return &v1.CreateUserReply{User: toProtoUser(user)}, nil\n}\n```\n\nIs this the right way to handle errors in Kratos? What should I change?",
+      "expected_output": "Explains that kratos-layout uses errors.NotFound(v1.ErrorReason_USER_NOT_FOUND.String(), ...) in biz to define domain errors with proto-generated ErrorReason enum strings. The user's existing approach (Kratos errors in biz) is close to kratos-layout but should use proto-generated ErrorReason enum strings (v1.ErrorReason_USER_NOT_FOUND.String()) rather than manual reason strings ('USER_NOT_FOUND'). Service can pass through biz errors directly since they already carry correct codes, or remap to v1.ErrorXxx() for richer client messages.",
+      "files": [],
+      "expectations": [
+        "identifies that error reason strings should come from proto-generated ErrorReason enum (v1.ErrorReason_USER_NOT_FOUND.String()) rather than manual strings like 'USER_NOT_FOUND'",
+        "shows errors.proto with enum ErrorReason containing error values with (errors.code) annotations mapping to correct HTTP codes (404, 409, 400)",
+        "mentions running make errors (or protoc with protoc-gen-go-errors) to generate Go error functions from the proto definition",
+        "recommends a consistent service-level strategy instead of mixing ad-hoc manual constructors across layers",
+        "for the kratos-layout pattern, explains that biz Kratos errors can be returned directly since they already carry correct codes, or service can remap to v1.ErrorXxx() for richer messages",
+        "explains that kratos-layout recommends biz Kratos errors with proto ErrorReason, and the user's approach is close but should use v1.ErrorReason_XXX.String() for the reason parameter",
+        "shows either service-layer mapping with errors.Is or a clear explanation of the established direct-return pattern"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Help me configure middleware for my existing Kratos HTTP server. Requirements: rate limiting (500 requests/second), JWT authentication, request logging, distributed tracing (Jaeger), parameter validation, and panic recovery. Also, /health and /metrics paths should NOT require JWT authentication.",
+      "expected_output": "Complete middleware configuration code where recovery wraps the downstream chain, rate limiting happens early, auth is scoped off public endpoints with selector by operation, and tracing is initialized.",
+      "files": [],
+      "expectations": [
+        "middleware order reflects Kratos registration semantics and lets recovery wrap the downstream chain",
+        "includes all 6 middleware (ratelimit, JWT, logging, tracing, validate, recovery)",
+        "JWT exclusion is handled with selector or an equivalent operation-aware approach for Kratos routes",
+        "mentions separate handling when /metrics is not a normal proto-backed Kratos operation",
+        "includes Jaeger/OTLP TracerProvider initialization code",
+        "recovery is explicitly placed early enough to catch downstream panics with explanation of why",
+        "provided Go code is structurally complete with necessary imports"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "I have two Kratos microservices — order-service and user-service. order-service needs to call user-service's GetUser gRPC endpoint to verify the user during order creation. Requirements: 1) use service discovery (Etcd) instead of hardcoded addresses 2) client must have distributed tracing and metadata propagation 3) error handling must be proper (user not found, timeout, service unavailable all need handling). Give me the complete code changes needed in order-service.",
+      "expected_output": "Complete cross-service gRPC call implementation with service discovery, client middleware (tracing.Client/metadata.Client), errors.FromError or IsXxx for remote error unwrapping, gRPC framework error handling (timeout/unavailable), no raw remote error passthrough.",
+      "files": [],
+      "expectations": [
+        "uses discovery:/// scheme for service discovery instead of hardcoded addresses",
+        "client includes tracing.Client() middleware for cross-service trace propagation",
+        "client includes metadata.Client() middleware for cross-service metadata propagation",
+        "uses errors.FromError or remote service's IsXxx functions to unwrap remote Kratos errors",
+        "does not propagate remote service's raw errors to local clients — maps to local service's own error codes",
+        "handles gRPC framework-level errors (at least DeadlineExceeded and Unavailable)",
+        "gRPC client connection is created in data or server layer and injected via Wire"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I'm starting a new Kratos microservice project for a blog platform. The project hasn't been initialized yet — no go.mod exists. I need a GetArticle endpoint that fetches an article from the database by ID. Implement the data layer (internal/data/article.go) with proper error handling. Show me how the data layer should handle the 'article not found' case.",
+      "expected_output": "For a new project, the model should recommend Ent as the default ORM (mentioning GORM as alternative). The data layer implementation should use Ent by default, with ORM-specific error detection translated to biz domain errors.",
+      "files": [],
+      "expectations": [
+        "recommends Ent as the default ORM for new projects (may also mention GORM as alternative), since this is a new project with no go.mod",
+        "data layer catches ORM-specific 'not found' errors (ent.IsNotFound or gorm.ErrRecordNotFound) and translates to a biz domain error",
+        "data layer does not import api/v1 error package",
+        "data layer imports biz package for domain error types and repo interface",
+        "unknown/unexpected errors are wrapped with context (fmt.Errorf with %w) rather than silently swallowed",
+        "provides a NewArticleRepo constructor that returns the biz.ArticleRepo interface for Wire injection",
+        "biz domain error is defined using kratos/v2/errors with proto ErrorReason (e.g., errors.NotFound(v1.ErrorReason_ARTICLE_NOT_FOUND.String(), \"article not found\")) following kratos-layout pattern"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "I need to add a new Product CRUD API to my existing Kratos project. The proto file is api/product/v1/product.proto. Please write the complete proto definition including the service with all CRUD RPCs (CreateProduct, GetProduct, ListProducts, UpdateProduct, DeleteProduct), all request/response messages, and the Product resource message. The product has fields: id, name, price, category, and timestamps. The proto must follow standard OpenAPI format so we can generate openapi.yaml from it.",
+      "expected_output": "A complete proto file with service RPCs annotated with google.api.http for REST routing and openapi.v3.operation for API docs. Every RPC has a leading // comment. Every message and field has a leading // comment. The import includes openapi/v3/annotations.proto.",
+      "files": [],
+      "expectations": [
+        "imports openapi/v3/annotations.proto",
+        "every RPC method has a leading // comment describing the operation",
+        "every RPC method has option (openapi.v3.operation) with tags, summary, and description fields",
+        "every RPC method has option (google.api.http) with correct HTTP method and path",
+        "every message definition has a leading // comment describing its purpose",
+        "every message field has a leading // comment describing the field",
+        "request/response messages follow Kratos naming convention (XxxRequest/XxxReply)"
+      ]
+    }
+  ]
+}

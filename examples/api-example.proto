@@ -1,0 +1,121 @@
+// API 定义示例 - 用户服务
+syntax = "proto3";
+package user.v1;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+import "errors/errors.proto";
+
+option go_package = "github.com/example/user/api/user/v1;v1";
+
+// 用户服务定义
+service UserService {
+    // 获取用户信息
+    rpc GetUser(GetUserRequest) returns (GetUserReply) {
+        option (google.api.http) = {
+            get: "/v1/users/{id}"
+        };
+    }
+    
+    // 创建用户
+    rpc CreateUser(CreateUserRequest) returns (CreateUserReply) {
+        option (google.api.http) = {
+            post: "/v1/users"
+            body: "*"
+        };
+    }
+    
+    // 更新用户
+    rpc UpdateUser(UpdateUserRequest) returns (UpdateUserReply) {
+        option (google.api.http) = {
+            put: "/v1/users/{id}"
+            body: "user"
+        };
+    }
+    
+    // 删除用户
+    rpc DeleteUser(DeleteUserRequest) returns (google.protobuf.Empty) {
+        option (google.api.http) = {
+            delete: "/v1/users/{id}"
+        };
+    }
+    
+    // 列取用户
+    rpc ListUsers(ListUsersRequest) returns (ListUsersReply) {
+        option (google.api.http) = {
+            get: "/v1/users"
+        };
+    }
+}
+
+// ========== 消息定义 ==========
+
+message User {
+    int64 id = 1;
+    string name = 2;
+    string email = 3;
+    UserStatus status = 4;
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
+}
+
+enum UserStatus {
+    USER_STATUS_UNSPECIFIED = 0;
+    USER_STATUS_ACTIVE = 1;
+    USER_STATUS_INACTIVE = 2;
+    USER_STATUS_DELETED = 3;
+}
+
+// 获取用户
+message GetUserRequest {
+    int64 id = 1 [(validate.rules).int64 = {gt: 0}];
+}
+
+message GetUserReply {
+    User user = 1;
+}
+
+// 创建用户
+message CreateUserRequest {
+    string name = 1 [(validate.rules).string = {min_len: 1, max_len: 100}];
+    string email = 2 [(validate.rules).string.email = true];
+    string password = 3 [(validate.rules).string = {min_len: 8, max_len: 64}];
+}
+
+message CreateUserReply {
+    User user = 1;
+}
+
+// 更新用户
+message UpdateUserRequest {
+    int64 id = 1 [(validate.rules).int64 = {gt: 0}];
+    google.protobuf.FieldMask update_mask = 2;
+    UserInfo user = 3;
+}
+
+message UserInfo {
+    string name = 1 [(validate.rules).string = {max_len: 100}];
+    string email = 2 [(validate.rules).string.email = true];
+}
+
+message UpdateUserReply {
+    User user = 1;
+}
+
+// 删除用户
+message DeleteUserRequest {
+    int64 id = 1 [(validate.rules).int64 = {gt: 0}];
+}
+
+// 列取用户
+message ListUsersRequest {
+    int32 page = 1 [(validate.rules).int32 = {gte: 1}];
+    int32 page_size = 2 [(validate.rules).int32 = {gte: 1, lte: 100}];
+    string order_by = 3;
+    string keyword = 4 [(validate.rules).string = {max_len: 100}];
+}
+
+message ListUsersReply {
+    repeated User users = 1;
+    int32 total = 2;
+}
