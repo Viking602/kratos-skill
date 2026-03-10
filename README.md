@@ -16,22 +16,24 @@ npx skills add viking602/kratos-skill
 
 This starts the interactive installer for the skill package.
 
-Install from a GitHub repository:
+Install globally from GitHub:
 
 ```bash
-npx skills add <owner>/<repo>
+npx skills add viking602/kratos-skill -g
 ```
 
-Install from a local path:
+Install from a local clone of this repository:
 
 ```bash
-npx skills add /path/to/kratos-skill
+git clone git@github.com:Viking602/kratos-skill.git
+cd kratos-skill
+npx skills add .
 ```
 
 List the skill without installing:
 
 ```bash
-npx skills add <owner>/<repo> --list
+npx skills add viking602/kratos-skill --list
 ```
 
 Install only this skill for Codex without prompts:

@@ -16,22 +16,24 @@ npx skills add viking602/kratos-skill
 
 这条命令会进入交互式安装流程。
 
-从 GitHub 仓库安装：
+从 GitHub 全局安装：
 
 ```bash
-npx skills add <owner>/<repo>
+npx skills add viking602/kratos-skill -g
 ```
 
-从本地路径安装：
+从这个仓库的本地克隆安装：
 
 ```bash
-npx skills add /path/to/kratos-skill
+git clone git@github.com:Viking602/kratos-skill.git
+cd kratos-skill
+npx skills add .
 ```
 
 仅查看仓库中可安装的技能，不执行安装：
 
 ```bash
-npx skills add <owner>/<repo> --list
+npx skills add viking602/kratos-skill --list
 ```
 
 仅为 Codex 无提示安装这个技能：
